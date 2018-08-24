@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block body %}
+    <div class="panel panel-primary" style="width: 1500px;margin: 0 auto">
+      <div class="panel-heading">
+        <h3 class="panel-title">学员审核</h3>
+      </div>
+      <div class="panel-body" style="position: relative">
+          <span style="color: red">{{ approved_error }}</span>
+          <form class="form-horizontal" method="post">{% csrf_token %}
+              {% for field in enroll_form %}
+                  <div class="form-group">
+                     <label class="col-sm-1 control-label">{{ field.label }}</label>
+                     <div class="col-sm-5">
+                        {{ field }}
+                         <span style="color: red">{{ field.errors.0 }}</span>
+                     </div>
+                  </div>
+              {% endfor %}
+              <div class="form-group">
+                 <label class="col-sm-1 control-label">课程</label>
+                 <div class="col-sm-5">
+                     <span class="form-control" disabled="disabled">{{ enroll_obj.class_grade.course.name }}</span>
+                 </div>
+              </div>
+              <div class="form-group">
+                 <label class="col-sm-1 control-label">课程价格</label>
+                 <div class="col-sm-5">
+                     <span class="form-control" disabled="disabled">{{ enroll_obj.class_grade.course.price }}</span>
+                 </div>
+              </div>
+              <div style="position: absolute ;top: 15px;right: 25px">
+                  <pre style="height: 420px;width: 700px;">{{ enroll_obj.class_grade.contract.content }}</pre>
+                  <span><input type="checkbox" name="contract_agreed" checked="checked" disabled="disabled" value="agreed"/>我已经阅读以上内容并同意签署该合同</span>
+
+              </div>
+                <p>
+                     已上传的文件
+                     <ul id="uploaded_files">
+                         {% for file in file_upload_list %}
+                             <li>{{ file }}</li>
+                         {% endfor %}
+                     </ul>
+                     <span style="color: red">{{ is_upload_file }}</span>
+                  </p>
+
+              <div class="form-group">
+                  <input type="submit" value="提交" class="btn col-sm-1 col-sm-offset-10 btn-info" id="submit_data"/>
+              </div>
+          </form>
+            <hr>
+          <form class="form-horizontal">
+              <div class="form-group">
+                  <input type="hidden" name="reject" value="true">
+                  <input type="submit" value="驳回" class="btn col-sm-1 col-sm-offset-10 btn-danger" id="reject_data"/>
+              </div>
+          </form>
+
+
+      </div>
+    </div>
+
+
+
+<script src="/static/plugins/dropzone/dropzone.js"></script>
+<script src="/static/js/jquery.min.js"></script>
+<script>
+    $(".form-horizontal").submit(function () {
+        console.log($("select"));
+        $("select").attr("disabled",false);
+        $("input").attr("disabled",false);
+        return true
+    });
+</script>
+{% endblock %}
+

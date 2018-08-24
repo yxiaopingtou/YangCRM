@@ -1,0 +1,85 @@
+{% extends "index.html" %}
+{% load get_crm_data %}
+
+{% block body_right %}
+<h3>学员报名|生成报名链接</h3>
+<hr/>
+
+<form class="form-horizontal" method="post">{% csrf_token %}
+    <div class="form-group">
+        <span style="color: red">{{ enrollment_error }}</span>
+        <span style="color: red">{{ enroll_error }}</span>
+        <label class="col-sm-1 control-label">客户</label>
+        <div class="col-sm-5">
+
+            <select class="form-control" name="customer_id">
+                {% for customer in customer_list %}
+                    <option value="{{ customer.id }}">{{ customer }}</option>
+                {% endfor %}
+            </select>
+
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-1 control-label">班级</label>
+        <div class="col-sm-5">
+            <select class="form-control" name="class_id">
+                {% for class in class_list %}
+                    <option value="{{ class.id }}">{{ class }}</option>
+                {% endfor %}
+            </select>
+
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <input type="submit" value="下一步" class="btn col-sm-1 col-sm-offset-5 btn-info"/>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-1 control-label">链接</label>
+        <div class="col-sm-5">
+            <a class="form-control">{{ enrollment_url }}</a>
+        </div>
+    </div>
+</form>
+
+<h3>学员审核</h3>
+<hr/>
+<div class="col-sm-11 main" style="">
+
+     <table class="table table-striped" style="margin-top: -40px">
+        <thead>
+            <tr>
+                <th>
+                    <h3>customer ID</h3>
+                </th>
+                <th>
+                    <h3>customer name</h3>
+                </th>
+                <th>
+                    <h3>approved</h3>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for enrollment_obj in enrollment_agreed %}
+                <tr style="font-size: 16px">
+                    <td>{{ enrollment_obj.customer.id }}</td>
+                    <td>{{ enrollment_obj.customer.name }}</td>
+                    <td><a href="{% get_approved_url enrollment_obj %}">审核</a></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+
+    </table>
+</div>
+
+
+
+
+
+
+{% endblock %}

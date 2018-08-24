@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block body %}
+    <div class="panel panel-primary" style="width: 1500px;margin: 0 auto">
+      <div class="panel-heading">
+        <h3 class="panel-title">学员报名</h3>
+      </div>
+      <div class="panel-body" style="position: relative">
+          {{ customer_obj.errors }}
+          <form class="form-horizontal" method="post">{% csrf_token %}
+              {% for field in customer_obj %}
+                  <div class="form-group">
+                     <label class="col-sm-1 control-label">{{ field.label }}</label>
+                     <div class="col-sm-5">
+                        {{ field }}
+                         <span style="color: red">{{ field.errors.0 }}</span>
+                     </div>
+                  </div>
+              {% endfor %}
+              <div class="form-group">
+                 <label class="col-sm-1 control-label">课程</label>
+                 <div class="col-sm-5">
+                     <span class="form-control">{{ enroll_obj.class_grade.course.name }}</span>
+                 </div>
+              </div>
+              <div class="form-group">
+                 <label class="col-sm-1 control-label">课程价格</label>
+                 <div class="col-sm-5">
+                     <span class="form-control">{{ enroll_obj.class_grade.course.price }}</span>
+                 </div>
+              </div>
+              <div style="position: absolute ;top: 15px;right: 25px">
+                  <pre style="height: 420px;width: 700px;">{{ enroll_obj.class_grade.contract.content }}</pre>
+                  <span><input type="checkbox" name="contract_agreed" value="agreed"/>我已经阅读以上内容并同意签署该合同</span>
+                  <span style="color: red">{{ is_agreed_error }}</span>
+              </div>
+
+
+              <div class="form-group">
+                  <input type="submit" value="提交" class="btn col-sm-1 col-sm-offset-10 btn-info" id="submit_data"/>
+              </div>
+          </form>
+          <hr>
+          <p>
+             已上传的文件
+             <ul id="uploaded_files">
+                 {% for file in file_upload_list %}
+                     <li>{{ file }}</li>
+                 {% endfor %}
+             </ul>
+             <span style="color: red">{{ is_upload_file }}</span>
+          </p>
+
+
+          <form action="{% url "enrollment_file-upload"  enroll_obj.id%}" class="dropzone" id="myAwesomeDropzone">{% csrf_token %}
+              <div class="fallback">
+                <input name="file" type="file" multiple />
+              </div>
+          </form>
+
+      </div>
+    </div>
+
+
+
+<script src="/static/plugins/dropzone/dropzone.js"></script>
+<script src="/static/js/jquery.min.js"></script>
+<script>
+    $(".form-horizontal").submit(function () {
+        console.log($("select"));
+        $("select").attr("disabled",false);
+        return true
+    });
+    Dropzone.options.myAwesomeDropzone = {
+          paramName: "file", // The name that will be used to transfer the file
+          maxFilesize: 2, // MB
+          maxFiles:2,
+          parallelUploads:1,
+          accept: function(file, done) {
+            if (file.name == "justinbieber.jpg") {  //指定上传文件格式
+              done("Naha, you don't.");
+            }
+            else { done(); }
+          }
+        };
+    $(function () {
+        Dropzone.options.myAwesomeDropzone = false;
+          var myDropzone = new Dropzone("#myAwesomeDropzone");
+          myDropzone.on("success", function(file,response) {
+            /* Maybe display some more file information on your page */
+             console.log("completet", file, response);
+             var response = JSON.parse(response);
+             if (!response.status){
+                 alert(response.err_msg);
+             }else {
+                 $("#uploaded_files").append("<li>"+ file.name +"</li>");
+
+             }
+
+          });
+    })
+</script>
+{% endblock %}
+

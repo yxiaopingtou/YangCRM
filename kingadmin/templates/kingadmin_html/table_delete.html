@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load get_table_data %}
+
+
+{% block body %}
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">{% block pro_name %}Project name{% endblock %}</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <li class="dropdown ">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" >{{ request.user }} <span class="caret"></span></a>
+              <ul class="dropdown-menu">
+                <li><a href="#">个人信息</a></li>
+                <li><a href="/logout">注销</a></li>
+              </ul>
+            </li>
+
+          </ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main" style="left: -150px;">
+            <h3>delete
+                {% for delete_obj in delete_objs %}
+                    <a>{{ delete_obj}}</a>
+                {% endfor %}
+            </h3><hr/>
+            <h4>Are you sure?</h4>
+            <h5>
+                Are you sure you want to delete the
+                <a>{{ model_name }}</a>
+                {% for delete_obj in delete_objs %}
+                    <a>{{ delete_obj}}</a>
+                {% endfor %}
+                ? All of the following related items will be deleted:
+            </h5>
+            <div>
+                <h4>Objects:</h4>
+                {% for delete_obj in delete_objs %}
+                    {% get_related_delete_data delete_obj model_name app_name as related_delete_data %}
+                    {{ related_delete_data|safe }}
+                {% endfor %}
+                <form class="navbar-form navbar-left" style="display: inline-block" method="post">{% csrf_token %}
+                    <input type="hidden" name="delete_id" value="{{ delete_objs_id }}">
+                    <input type="submit" class="btn bg-danger" value="Delete">
+                    <a class="btn bg-info " href="{% get_back_url delete_objs app_name model_name %}">返回</a>
+                </form>
+            </div>
+
+
+
+        </div>
+    </div>
+
+{% endblock %}

@@ -1,0 +1,130 @@
+{% load get_table_data %}
+
+
+
+<form class="form-horizontal" method="post" onsubmit="beforesubmitsetselected()">
+    {% csrf_token %}
+    {% for field in form_obj %}
+        {% if not admin_class.form_add %}
+            {% if field.name not in admin_class.filter_horizontal %}
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">{{ field.label }}</label>
+                    <div class="col-sm-6">
+                        {{ field }}
+                        <span style="color: red">{{ field.errors.0 }}</span>
+                    </div>
+                </div>
+            {% else %}
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">{{ field.label }}</label>
+                        <div class="col-sm-3">
+                            <input type="search" class="form-control" oninput="search_input(this)" placeholder="search">
+                            <select ondblclick="moveOptionToSelected(this,'selected_list')" id="horizontal" class="form-control" multiple>
+                                {% get_horizontal_list field.name admin_class form_obj as horizontal_list%}
+                                {% for obj in horizontal_list %}
+                                    <option value="{{ obj.id }}">{{ obj.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <a onclick="ChooseAll('horizontal','selected_list')" >Choose all >></a>
+                            <span style="color: red">{{ field.errors.0 }}</span>
+                        </div>
+                        <div class="col-sm-3">
+                            <select tag="selected_m2m" class="form-control" name="{{ field.name }}" ondblclick="moveOptionToSelected(this,'horizontal')" id="selected_list" multiple>
+                                {% get_horizontal_selected_list field.name form_obj as selected_list%}
+                                {% for obj in selected_list %}
+                                    <option value="{{ obj.id }}">{{ obj.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <a onclick="ChooseAll('selected_list','horizontal')" >Choose all <<</a>
+                        </div>
+                    </div>
+            {% endif %}
+        {% else %}
+            <div class="form-group">
+                <label class="col-sm-2 control-label">{{ field.label }}</label>
+                <div class="col-sm-6">
+                    {{ field }}
+                    <span style="color: red">{{ field.errors.0 }}</span>
+                </div>
+            </div>
+        {% endif %}
+    {% endfor %}
+    {% if not admin_class.form_add %}
+        {% for field in admin_class.readonly_fields %}
+        <div class="form-group">
+            <label class="col-sm-2 control-label">{{ field }}</label>
+            <div class="col-sm-6">
+                <p class="form-control">{% get_readonly_data field form_obj %}</p>
+            </div>
+        </div>
+        {% endfor %}
+    {% endif %}
+    <div class="form-group">
+        {% if not admin_class.form_add %}
+            <a class="btn col-sm-offset-2 bg-danger" href="{% get_delete_url form_obj admin_class %}">Delete</a>
+            <input type="submit" class="btn col-sm-offset-5 btn-default" value="save">
+        {% else %}
+            <input type="submit" class="btn col-sm-offset-7 btn-default" value="save">
+        {% endif %}
+
+    </div>
+</form>
+
+<script>
+    function moveOptionToSelected(self,target_id) {
+        var click_option = $(self).children();
+
+        for (var i = 0; i < click_option.length; i += 1) {
+            var op = click_option[i];
+            if (op.selected == true) {
+
+                var select_option = document.createElement("option");
+                select_option.innerHTML = op.innerHTML;
+                $(select_option).val($(op).val());
+                $('#' + target_id).append(select_option);
+                $(op).remove()
+            }
+        }
+    }
+    function beforesubmitsetselected() {
+        var form_add = "{{ admin_class.form_add }}";
+        console.log(form_add);
+        if (form_add == "True"){
+            console.log(1)
+        }else{
+            $("select[tag] option").prop('selected',true);
+        }
+
+    }
+
+    function ChooseAll(from_id,to_id) {
+        console.log(11);
+        var from_option = $('#'+from_id).children();
+        for (var i = 0; i < from_option.length; i += 1) {
+            var op = from_option[i];
+            var select_option = document.createElement("option");
+            select_option.innerHTML = op.innerHTML;
+            $(select_option).val($(op).val());
+            $('#'+to_id).append(select_option);
+            $(op).remove()
+        }
+    }
+
+    function search_input(self) {
+        var search_data = $(self).val().toUpperCase();
+        console.log(search_data);
+        var select_chrildren =  $("#horizontal").children();
+         for (var i = 0; i < select_chrildren.length; i += 1) {
+            var op_data = $(select_chrildren[i]).text().toUpperCase();
+            console.log(op_data);
+            if(op_data.indexOf(search_data)>=0){
+                $(select_chrildren[i]).show()
+            }else{
+                $(select_chrildren[i]).hide()
+            }
+         }
+
+    }
+</script>
+
+

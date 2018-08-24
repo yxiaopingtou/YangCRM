@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+{% load get_table_data %}
+
+
+{% block body %}
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">{% block pro_name %}Project name{% endblock %}</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <li class="dropdown ">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" >{{ request.user }} <span class="caret"></span></a>
+              <ul class="dropdown-menu">
+                <li><a href="#">个人信息</a></li>
+                <li><a href="/logout">注销</a></li>
+              </ul>
+            </li>
+
+          </ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-3 col-md-2 sidebar">
+              <ul class="nav nav-sidebar" id="user_menu">
+                  {% for role in  request.user.userprofile.role.select_related %}
+                     {% for menu in role.menu.select_related %}
+                        <li><a href="{% if menu.url_type == 0 %}{{ menu.url_name }}{% else %}{{ menu.url_name }}{% endif %}">{{ menu.name }}</a></li>
+                     {% endfor %}
+                  {% endfor %}
+
+              </ul>
+
+            </div>
+            <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main" style="">
+                <h3>{% get_model_name admin_class %}</h3>
+
+                <form class="navbar-form navbar-right" style="display: inline-block">
+                {% if admin_class.search_fields %}
+                    <input type="text" class="form-control" placeholder="{{ admin_class.search_fields }}" name="search">
+                    <input type="submit" value="Search">
+                    {% for k,v in admin_class.filter_condition.items %}
+                        <input type="hidden" name="{{ k }}" value="{{ v }}">
+                    {% endfor %}
+                    {% for k,v in admin_class.order_dict.items %}
+                        <input type="hidden" name="_O" value="{{ v }}">
+                    {% endfor %}
+                {% endif %}
+                </form>
+
+                <form>
+                    {% if admin_class.list_filter %}
+                        {% for filter_column in admin_class.list_filter %}
+                            {% filter_data filter_column admin_class %}
+                        {% endfor %}
+                        <input type="submit" value="筛选"/>
+                        {% for k,v in admin_class.order_dict.items %}
+                            <input type="hidden" name="_O" value="{{ v }}">
+                        {% endfor %}
+                        <input type="hidden" name="search" value="{{ admin_class.search_content }}">
+                    {% endif %}
+                </form>
+                <form class="form-horizontal" method="post">{% csrf_token %}
+                    <div class="col-sm-3">
+                       <select class="form-control" name="action" id="action_select" style="position: absolute;left: 0">
+                           <option value="">--------------------</option>
+                           {% for action in admin_class.action_form  %}
+                                <option value="{{ action }}" name="action_op">{{ action }}</option>
+                           {% endfor %}
+                        </select>
+                        <input type="hidden" id="send_id" name="selected_id">
+                        <input type="submit" onclick="return submit_checkedbox()" value="Go" class="btn btn-default" style="position: absolute;left: 380px">
+                    </div>
+
+                </form>
+
+                <table class="table table-striped">
+                    <thead>
+                        <tr><th><input type="hidden"></th></tr>
+                        <tr>
+                            {% if admin_class.list_display %}
+                                <th><input type="checkbox" id="boss_check" onchange="boss_checkbox_change(this)"/></th>
+                                {% for iterm in admin_class.list_display %}
+                                    <th>
+                                        {% get_display_href iterm admin_class %}
+
+                                    </th>
+                                {% endfor %}
+                            {% else %}
+                                <th><input type="checkbox" id="boss_check" onchange="boss_checkbox_change(this)"/></th>
+                                <th>
+                                    {% get_model_name admin_class get_model=True %}
+                                </th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for obj in queryset %}
+                            <tr>
+                                <td><input type="checkbox" class="checkbox_one" value="{{ obj.id }}"></td>
+                                {% get_data obj admin_class%}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+
+                </table>
+
+
+
+                  <ul class="pagination">
+                      {% get_page_ele page_cur admin_class%}
+                  </ul>
+
+                <a class="btn btn-default" href="add/" role="button" style="float: right">添加</a>
+            </div>
+        </div>
+    </div>
+
+
+<script src="/static/js/jquery.min.js"></script>
+<script>
+
+    function boss_checkbox_change(self) {
+        var is_checked = $(self).prop("checked");
+        if (is_checked){
+            $(".checkbox_one").each(function () {
+                $(this).prop("checked",true)
+            })
+        }else {
+           $(".checkbox_one").each(function () {
+                $(this).prop("checked",false)
+            })
+        }
+    }
+    function submit_checkedbox() {
+        var action = $("#action_select").children().filter(":checked");
+        var checkbox_one = $(".checkbox_one").filter(":checked");
+
+        console.log(checkbox_one.length);
+        if (!$(action).val()){
+            alert("请选择action")
+            return false
+        }else if(checkbox_one.length == 0){
+            alert("请选择checkbox")
+            return false
+        }else{
+            var send_check_id = new Array();
+            for (var i = 0; i < checkbox_one.length; i += 1) {
+                var check = checkbox_one[i];
+                var id = $(check).val();
+                send_check_id.push([id])
+            }
+            $("#send_id").val(JSON.stringify(send_check_id))
+            return true
+        }
+    }
+
+    $(function () {
+        user_menu_set_active()
+    });
+
+    function user_menu_set_active() {
+        $("#user_menu").children().each(function () {
+
+            var request_url = "{{ request.path }}";
+            console.log(request_url);
+            console.log($(this).children().attr("href"));
+            if ($(this).children().attr("href") == request_url ){
+                console.log(11);
+                $(this).addClass("active")
+            }
+        })
+    }
+</script>
+
+{% endblock %}
+
+
